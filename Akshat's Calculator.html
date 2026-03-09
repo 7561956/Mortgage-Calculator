@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Mortgage Qualifier</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #0d5f82;
+    --blue:    #24a9e2;
+    --green:   #b8df1c;
+    --yellow:  #faef2a;
+    --red:     #d93b3b;
+    --bg:      #0a0f14;
+    --surface: #111820;
+    --card:    #161f2a;
+    --border:  #1e2d3d;
+    --text:    #e8edf2;
+    --muted:   #6b8299;
+    --pass:    #4caf7d;
+    --fail:    #e05555;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, #0a3d55 100%);
+    padding: 20px 16px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--blue);
+  }
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #fff;
+  }
+  header p {
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 1;
+    min-width: 80px;
+    padding: 12px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .tab.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; padding: 16px; }
+  .panel.active { display: block; }
+
+  /* ── SECTION LABELS ── */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--blue);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 20px 0 10px;
+    padding-left: 2px;
+  }
+  .section-label:first-child { margin-top: 4px; }
+
+  /* ── FIELD GROUPS ── */
+  .field {
+    margin-bottom: 10px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--yellow);
+    font-size: 16px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--blue);
+    background: #1a2535;
+  }
+  .field select option { background: var(--card); color: var(--text); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* ── CALC BUTTON ── */
+  .calc-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 20px;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .calc-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  /* ── RESULTS CARDS ── */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .result-card.highlight {
+    border-color: var(--blue);
+    background: linear-gradient(135deg, #0d2035, #0d1a28);
+  }
+  .result-card .rc-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .result-card .rc-value {
+    font-size: 22px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    color: var(--blue);
+  }
+  .result-card .rc-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .rr-label { font-size: 12px; color: var(--muted); }
+  .result-row .rr-value {
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── PASS/FAIL BADGES ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .badge.pass { background: rgba(76,175,125,0.15); color: var(--pass); border: 1px solid rgba(76,175,125,0.3); }
+  .badge.fail { background: rgba(224,85,85,0.15); color: var(--fail); border: 1px solid rgba(224,85,85,0.3); }
+  .badge.warn { background: rgba(250,239,42,0.12); color: var(--yellow); border: 1px solid rgba(250,239,42,0.3); }
+
+  /* ── RATIO BAR ── */
+  .ratio-bar-wrap {
+    margin: 8px 0 4px;
+  }
+  .ratio-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ratio-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .ratio-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── DECISION BANNER ── */
+  .decision-banner {
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 14px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+  .decision-banner.qualifies {
+    background: rgba(76,175,125,0.12);
+    border: 1px solid rgba(76,175,125,0.35);
+    color: var(--pass);
+  }
+  .decision-banner.fails {
+    background: rgba(224,85,85,0.12);
+    border: 1px solid rgba(224,85,85,0.35);
+    color: var(--fail);
+  }
+  .decision-banner .dsub {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.8;
+    margin-top: 3px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* ── TOOLTIP/NOTE ── */
+  .note {
+    background: rgba(36,169,226,0.07);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  /* ── INCOME HELPER ── */
+  .income-helper {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .income-helper .ih-title {
+    font-size: 10px;
+    color: var(--blue);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .income-helper .ih-result {
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+    color: var(--green);
+    font-weight: 500;
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: rgba(184,223,28,0.08);
+    border-radius: 6px;
+  }
+
+  /* ── CALC (PAYMENT) ── */
+  .pmt-result {
+    background: linear-gradient(135deg, #0d2035, #0a1a28);
+    border: 1px solid var(--blue);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    text-align: center;
+  }
+  .pmt-result .pr-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pmt-result .pr-value {
+    font-size: 32px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    color: var(--blue);
+  }
+  .pmt-result .pr-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .pmt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .pmt-grid-item {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+  .pmt-grid-item .pgi-label {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'DM Mono', monospace;
+  }
+  .pmt-grid-item .pgi-value {
+    font-size: 14px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  /* ── PENALTY ── */
+  .penalty-result {
+    background: rgba(208,58,58,0.08);
+    border: 1px solid rgba(208,58,58,0.3);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .penalty-result .per-label {
+    font-size: 10px;
+    color: var(--red);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .penalty-result .per-value {
+    font-size: 26px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 600;
+    color: var(--red);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  .empty-state .es-icon { font-size: 36px; margin-bottom: 10px; }
+  .empty-state p { font-size: 13px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 Mortgage Qualifier</h1>
+  <p>Canadian · OSFI B-20 · Semi-Annual Compounding</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('qualify')">Qualify</div>
+  <div class="tab" onclick="switchTab('payment')">Payment</div>
+  <div class="tab" onclick="switchTab('penalty')">Penalty</div>
+  <div class="tab" onclick="switchTab('income')">Income</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 1: QUALIFY
+════════════════════════════════════════════════════ -->
+<div class="panel active" id="tab-qualify">
+
+  <div class="section-label">Property & Mortgage</div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Purchase Price</label>
+      <input type="number" id="q-price" value="800000" inputmode="numeric" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>Down Payment %</label>
+      <input type="number" id="q-dp-pct" value="20" step="0.1" inputmode="decimal" onchange="syncDP('pct'); calcQualify()">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Down Payment $</label>
+      <input type="number" id="q-dp-amt" value="160000" inputmode="numeric" onchange="syncDP('amt'); calcQualify()">
+    </div>
+    <div class="field">
+      <label>CMHC Premium %</label>
+      <input type="number" id="q-cmhc" value="0" step="0.01" inputmode="decimal" onchange="calcQualify()">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Contract Rate %</label>
+      <input type="number" id="q-rate" value="4.99" step="0.01" inputmode="decimal" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>Amortization (yrs)</label>
+      <input type="number" id="q-amort" value="30" inputmode="numeric" onchange="calcQualify()">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Annual Prop. Tax $</label>
+      <input type="number" id="q-tax" value="5200" inputmode="numeric" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>Monthly Heating $</label>
+      <input type="number" id="q-heat" value="100" inputmode="numeric" onchange="calcQualify()">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Monthly Condo Fee $ (50% used in ratios)</label>
+    <input type="number" id="q-condo" value="0" inputmode="numeric" onchange="calcQualify()">
+  </div>
+
+  <div class="section-label">Income (up to 4 Borrowers)</div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Borrower 1 Annual $</label>
+      <input type="number" id="q-inc1" value="120000" inputmode="numeric" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>Borrower 2 Annual $</label>
+      <input type="number" id="q-inc2" value="75000" inputmode="numeric" onchange="calcQualify()">
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label>Borrower 3 Annual $</label>
+      <input type="number" id="q-inc3" value="0" inputmode="numeric" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>Borrower 4 Annual $</label>
+      <input type="number" id="q-inc4" value="0" inputmode="numeric" onchange="calcQualify()">
+    </div>
+  </div>
+
+  <div class="section-label">Monthly Debts</div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Credit Card Balances $</label>
+      <input type="number" id="q-cc" value="7000" inputmode="numeric" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>LOC Balances $</label>
+      <input type="number" id="q-loc" value="10000" inputmode="numeric" onchange="calcQualify()">
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label>Auto Loan /mo $</label>
+      <input type="number" id="q-auto" value="450" inputmode="numeric" onchange="calcQualify()">
+    </div>
+    <div class="field">
+      <label>Other Debts /mo $</label>
+      <input type="number" id="q-other" value="0" inputmode="numeric" onchange="calcQualify()">
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calcQualify()">▶ CALCULATE</button>
+
+  <div id="qualify-results"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 2: PAYMENT
+════════════════════════════════════════════════════ -->
+<div class="panel" id="tab-payment">
+
+  <div class="section-label">Mortgage Details</div>
+
+  <div class="field">
+    <label>Mortgage Amount $</label>
+    <input type="number" id="p-bal" value="640000" inputmode="numeric" onchange="calcPayment()">
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Annual Rate %</label>
+      <input type="number" id="p-rate" value="4.99" step="0.01" inputmode="decimal" onchange="calcPayment()">
+    </div>
+    <div class="field">
+      <label>Amortization (yrs)</label>
+      <input type="number" id="p-amort" value="30" inputmode="numeric" onchange="calcPayment()">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Term (yrs)</label>
+      <input type="number" id="p-term" value="5" inputmode="numeric" onchange="calcPayment()">
+    </div>
+    <div class="field">
+      <label>Frequency</label>
+      <select id="p-freq" onchange="calcPayment()">
+        <option value="12">Monthly</option>
+        <option value="24">Semi-Monthly</option>
+        <option value="26">Bi-Weekly</option>
+        <option value="52">Weekly</option>
+        <option value="26accel">Accel Bi-Wkly</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calcPayment()">▶ CALCULATE</button>
+
+  <div id="payment-results"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 3: PENALTY
+════════════════════════════════════════════════════ -->
+<div class="panel" id="tab-penalty">
+
+  <div class="note">Calculates both 3-month interest and IRD penalties. Lenders charge the greater of the two.</div>
+
+  <div class="section-label">Mortgage Details</div>
+
+  <div class="field">
+    <label>Current Balance $</label>
+    <input type="number" id="pen-bal" value="450000" inputmode="numeric" onchange="calcPenalty()">
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Contract Rate %</label>
+      <input type="number" id="pen-contract" value="4.99" step="0.01" inputmode="decimal" onchange="calcPenalty()">
+    </div>
+    <div class="field">
+      <label>Remaining (mo)</label>
+      <input type="number" id="pen-months" value="36" inputmode="numeric" onchange="calcPenalty()">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Posted Rate @ Origin %</label>
+      <input type="number" id="pen-posted-orig" value="6.99" step="0.01" inputmode="decimal" onchange="calcPenalty()">
+    </div>
+    <div class="field">
+      <label>Current Posted Rate %</label>
+      <input type="number" id="pen-posted-curr" value="5.24" step="0.01" inputmode="decimal" onchange="calcPenalty()">
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calcPenalty()">▶ CALCULATE</button>
+
+  <div id="penalty-results"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 4: INCOME HELPER
+════════════════════════════════════════════════════ -->
+<div class="panel" id="tab-income">
+
+  <div class="note">Convert any pay type to an annual income figure. Use the result in the Qualify tab.</div>
+
+  <div class="section-label">Borrower 1</div>
+  <div class="income-helper">
+    <div class="ih-title">Enter one of: Salary / Bi-weekly / Hourly / T4 Average</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Annual Salary $</label>
+        <input type="number" id="ih1-annual" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(1)">
+      </div>
+      <div class="field">
+        <label>Bi-weekly Pay $</label>
+        <input type="number" id="ih1-biweekly" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(1)">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Hourly Rate $</label>
+        <input type="number" id="ih1-hourly" value="" inputmode="decimal" placeholder="0" oninput="calcIncome(1)">
+      </div>
+      <div class="field">
+        <label>Hrs / Week</label>
+        <input type="number" id="ih1-hrs" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(1)">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>T4 / NOA Year 1 $</label>
+        <input type="number" id="ih1-t4y1" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(1)">
+      </div>
+      <div class="field">
+        <label>T4 / NOA Year 2 $</label>
+        <input type="number" id="ih1-t4y2" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(1)">
+      </div>
+    </div>
+    <div class="ih-result" id="ih1-result">Annual Income: —</div>
+  </div>
+
+  <div class="section-label">Borrower 2</div>
+  <div class="income-helper">
+    <div class="ih-title">Enter one of: Salary / Bi-weekly / Hourly / T4 Average</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Annual Salary $</label>
+        <input type="number" id="ih2-annual" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(2)">
+      </div>
+      <div class="field">
+        <label>Bi-weekly Pay $</label>
+        <input type="number" id="ih2-biweekly" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(2)">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Hourly Rate $</label>
+        <input type="number" id="ih2-hourly" value="" inputmode="decimal" placeholder="0" oninput="calcIncome(2)">
+      </div>
+      <div class="field">
+        <label>Hrs / Week</label>
+        <input type="number" id="ih2-hrs" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(2)">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>T4 / NOA Year 1 $</label>
+        <input type="number" id="ih2-t4y1" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(2)">
+      </div>
+      <div class="field">
+        <label>T4 / NOA Year 2 $</label>
+        <input type="number" id="ih2-t4y2" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(2)">
+      </div>
+    </div>
+    <div class="ih-result" id="ih2-result">Annual Income: —</div>
+  </div>
+
+  <div class="section-label">Borrower 3 &amp; 4</div>
+  <div class="income-helper">
+    <div class="ih-title">Quick entry</div>
+    <div class="field-row">
+      <div class="field">
+        <label>B3 Annual $</label>
+        <input type="number" id="ih3-annual" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(3)">
+      </div>
+      <div class="field">
+        <label>B4 Annual $</label>
+        <input type="number" id="ih4-annual" value="" inputmode="numeric" placeholder="0" oninput="calcIncome(4)">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="ih-result" id="ih3-result" style="flex:1">B3: —</div>
+      <div style="width:10px"></div>
+      <div class="ih-result" id="ih4-result" style="flex:1">B4: —</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const val = id => parseFloat($(id).value) || 0;
+const fmt$ = n => '$' + Math.round(n).toLocaleString('en-CA');
+const fmt$2 = n => '$' + n.toLocaleString('en-CA', {minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtPct = n => (n*100).toFixed(2) + '%';
+
+// Canadian semi-annual compounding → effective monthly rate
+function canadianRate(annualPct) {
+  const r = annualPct / 100;
+  return Math.pow(1 + r/2, 2/12) - 1;
+}
+
+// PMT using Canadian semi-annual compounding
+function pmt(annualPct, periods, principal) {
+  const i = canadianRate(annualPct);
+  if (i === 0) return principal / periods;
+  return principal * i / (1 - Math.pow(1+i, -periods));
+}
+
+// Balance after n payments
+function balanceAfter(annualPct, totalPeriods, principal, n) {
+  const i = canadianRate(annualPct);
+  const payment = pmt(annualPct, totalPeriods, principal);
+  return principal * Math.pow(1+i, n) - payment * (Math.pow(1+i,n)-1)/i;
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  $('tab-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUALIFY
+// ═══════════════════════════════════════════════════════════
+function syncDP(changedField) {
+  const price = val('q-price');
+  if (!price) return;
+  if (changedField === 'pct') {
+    $('q-dp-amt').value = Math.round(price * val('q-dp-pct') / 100);
+  } else {
+    const pct = (val('q-dp-amt') / price * 100).toFixed(1);
+    $('q-dp-pct').value = pct;
+  }
+}
+
+function calcQualify() {
+  const price    = val('q-price');
+  const dpAmt    = val('q-dp-amt');
+  const cmhcPct  = val('q-cmhc') / 100;
+  const contractRate = val('q-rate');
+  const amort    = val('q-amort');
+  const annTax   = val('q-tax');
+  const heat     = val('q-heat');
+  const condo    = val('q-condo');
+  const inc1     = val('q-inc1');
+  const inc2     = val('q-inc2');
+  const inc3     = val('q-inc3');
+  const inc4     = val('q-inc4');
+  const ccBal    = val('q-cc');
+  const locBal   = val('q-loc');
+  const autoLoan = val('q-auto');
+  const otherDebt= val('q-other');
+
+  if (!price || !contractRate || !amort) return;
+
+  // Derived
+  const mortgageBase = price - dpAmt;
+  const mortgage     = mortgageBase * (1 + cmhcPct);
+  const qir          = Math.max(contractRate + 2, 5.25);
+  const months       = amort * 12;
+  const monthlyPmt   = pmt(qir, months, mortgage);
+
+  // Min down payment (CMHC tiered)
+  const minDown = price <= 500000
+    ? price * 0.05
+    : 500000 * 0.05 + (price - 500000) * 0.10;
+  const dpSurplus = dpAmt - minDown;
+  const dpPct = dpAmt / price;
+
+  // Income
+  const totalAnnual  = inc1 + inc2 + inc3 + inc4;
+  const totalMonthly = totalAnnual / 12;
+
+  // Debts
+  const ccMin  = ccBal  * 0.03;
+  const locMin = locBal * 0.03;
+  const totalDebts = ccMin + locMin + autoLoan + otherDebt;
+
+  // GDS: (pmt + tax/12 + heat + condo*0.5) / monthlyIncome
+  const gds = (monthlyPmt + annTax/12 + heat + condo*0.5) / totalMonthly;
+  // TDS: GDS numerator + all debts
+  const tds = (monthlyPmt + annTax/12 + heat + condo*0.5 + totalDebts) / totalMonthly;
+
+  // Limits
+  const gdsLimitIns  = 0.39, gdsLimitConv = 0.32;
+  const tdsLimitIns  = 0.44, tdsLimitConv = 0.42;
+
+  const gdsPassIns  = gds <= gdsLimitIns;
+  const gdsPassConv = gds <= gdsLimitConv;
+  const tdsPassIns  = tds <= tdsLimitIns;
+  const tdsPassConv = tds <= tdsLimitConv;
+  const qualifies   = gdsPassIns && tdsPassIns;
+
+  const html = `
+    <div class="divider"></div>
+
+    <div class="decision-banner ${qualifies ? 'qualifies' : 'fails'}">
+      ${qualifies ? '✅ QUALIFIES' : '❌ DOES NOT QUALIFY'}
+      <div class="dsub">${qualifies ? 'Meets insured GDS & TDS guidelines' : 'Exceeds one or more ratio limits'}</div>
+    </div>
+
+    <div class="result-card highlight">
+      <div class="rc-label">Monthly QIR Payment</div>
+      <div class="rc-value">${fmt$2(monthlyPmt)}</div>
+      <div class="rc-sub">Stress test rate: ${qir.toFixed(2)}% &nbsp;|&nbsp; ${months} payments</div>
+    </div>
+
+    <div class="result-card">
+      <div class="rc-label">GDS — Gross Debt Service</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="rc-value" style="font-size:20px">${fmtPct(gds)}</div>
+        <span class="badge ${gdsPassIns ? 'pass' : 'fail'}">${gdsPassIns ? 'PASS (INS)' : 'FAIL (INS)'}</span>
+      </div>
+      <div class="ratio-bar-wrap">
+        <div class="ratio-bar-track">
+          <div class="ratio-bar-fill" style="width:${Math.min(gds/0.50*100,100)}%;background:${gds<=gdsLimitConv?'var(--pass)':gds<=gdsLimitIns?'var(--yellow)':'var(--fail)'}"></div>
+        </div>
+        <div class="ratio-bar-labels"><span>0%</span><span>Conv 32%</span><span>Ins 39%</span><span>50%</span></div>
+      </div>
+      <div class="rc-sub">Conv: <span class="badge ${gdsPassConv?'pass':'fail'}" style="padding:1px 7px;font-size:10px">${gdsPassConv?'PASS':'FAIL'}</span></div>
+    </div>
+
+    <div class="result-card">
+      <div class="rc-label">TDS — Total Debt Service</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="rc-value" style="font-size:20px">${fmtPct(tds)}</div>
+        <span class="badge ${tdsPassIns ? 'pass' : 'fail'}">${tdsPassIns ? 'PASS (INS)' : 'FAIL (INS)'}</span>
+      </div>
+      <div class="ratio-bar-wrap">
+        <div class="ratio-bar-track">
+          <div class="ratio-bar-fill" style="width:${Math.min(tds/0.55*100,100)}%;background:${tds<=tdsLimitConv?'var(--pass)':tds<=tdsLimitIns?'var(--yellow)':'var(--fail)'}"></div>
+        </div>
+        <div class="ratio-bar-labels"><span>0%</span><span>Conv 42%</span><span>Ins 44%</span><span>55%</span></div>
+      </div>
+      <div class="rc-sub">Conv: <span class="badge ${tdsPassConv?'pass':'fail'}" style="padding:1px 7px;font-size:10px">${tdsPassConv?'PASS':'FAIL'}</span></div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-row"><span class="rr-label">Purchase Price</span><span class="rr-value">${fmt$(price)}</span></div>
+      <div class="result-row"><span class="rr-label">Down Payment</span><span class="rr-value">${fmt$(dpAmt)} (${(dpPct*100).toFixed(1)}%)</span></div>
+      <div class="result-row"><span class="rr-label">Min. Down Required</span><span class="rr-value">${fmt$(minDown)}</span></div>
+      <div class="result-row"><span class="rr-label">Down Surplus</span><span class="rr-value" style="color:${dpSurplus>=0?'var(--pass)':'var(--fail)'}">${fmt$(dpSurplus)}</span></div>
+      <div class="result-row"><span class="rr-label">Mortgage Amount</span><span class="rr-value">${fmt$(mortgage)}</span></div>
+      <div class="result-row"><span class="rr-label">Total Annual Income</span><span class="rr-value">${fmt$(totalAnnual)}</span></div>
+      <div class="result-row"><span class="rr-label">Total Monthly Debts</span><span class="rr-value">${fmt$2(totalDebts)}/mo</span></div>
+      <div class="result-row"><span class="rr-label">Annual Property Tax</span><span class="rr-value">${fmt$(annTax)}</span></div>
+    </div>
+
+    <div class="note">QIR = MAX(contract rate + 2%, 5.25%) per OSFI B-20. Canadian semi-annual compounding used throughout.</div>
+  `;
+
+  $('qualify-results').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAYMENT
+// ═══════════════════════════════════════════════════════════
+function calcPayment() {
+  const bal   = val('p-bal');
+  const rate  = val('p-rate');
+  const amort = val('p-amort');
+  const term  = val('p-term');
+  const freqEl = $('p-freq');
+  const freqVal = freqEl.value;
+
+  if (!bal || !rate || !amort) return;
+
+  let ppy, isAccel;
+  if (freqVal === '26accel') { ppy = 26; isAccel = true; }
+  else { ppy = parseInt(freqVal); isAccel = false; }
+
+  const totalPeriods = amort * ppy;
+  const termPeriods  = term  * ppy;
+
+  // Monthly payment first
+  const monthlyPmt = pmt(rate, amort * 12, bal);
+
+  let periodPmt;
+  if (isAccel) {
+    // Accelerated: monthly/2 but paid 26x
+    periodPmt = monthlyPmt / 2;
+  } else {
+    periodPmt = pmt(rate, totalPeriods, bal);
+  }
+
+  const termTotal    = periodPmt * termPeriods;
+  const balAtEOT     = balanceAfter(rate, totalPeriods, bal, termPeriods);
+  const principalPaid= bal - balAtEOT;
+  const interestTerm = termTotal - principalPaid;
+  const totalInterest= periodPmt * totalPeriods - bal;
+
+  const freqLabel = {'12':'Monthly','24':'Semi-Monthly','26':'Bi-Weekly','52':'Weekly','26accel':'Accel Bi-Weekly'}[freqVal];
+
+  $('payment-results').innerHTML = `
+    <div class="pmt-result">
+      <div class="pr-label">${freqLabel} Payment</div>
+      <div class="pr-value">${fmt$2(periodPmt)}</div>
+      <div class="pr-sub">Canadian semi-annual compounding · ${rate}% · ${amort}yr amort</div>
+      <div class="pmt-grid">
+        <div class="pmt-grid-item">
+          <div class="pgi-label">Balance at EOT</div>
+          <div class="pgi-value">${fmt$(balAtEOT)}</div>
+        </div>
+        <div class="pmt-grid-item">
+          <div class="pgi-label">Interest (Term)</div>
+          <div class="pgi-value">${fmt$(interestTerm)}</div>
+        </div>
+        <div class="pmt-grid-item">
+          <div class="pgi-label">Principal Paid</div>
+          <div class="pgi-value">${fmt$(principalPaid)}</div>
+        </div>
+        <div class="pmt-grid-item">
+          <div class="pgi-label">Total Interest</div>
+          <div class="pgi-value">${fmt$(totalInterest)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="result-card" style="margin-top:10px">
+      <div class="result-row"><span class="rr-label">Total Paid (Term)</span><span class="rr-value">${fmt$(termTotal)}</span></div>
+      <div class="result-row"><span class="rr-label">Monthly Equivalent</span><span class="rr-value">${fmt$2(monthlyPmt)}/mo</span></div>
+      <div class="result-row"><span class="rr-label">Total Cost (Full Amort)</span><span class="rr-value">${fmt$(periodPmt * totalPeriods)}</span></div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PENALTY
+// ═══════════════════════════════════════════════════════════
+function calcPenalty() {
+  const bal         = val('pen-bal');
+  const contract    = val('pen-contract') / 100;
+  const months      = val('pen-months');
+  const postedOrig  = val('pen-posted-orig') / 100;
+  const postedCurr  = val('pen-posted-curr') / 100;
+
+  if (!bal || !contract || !months) return;
+
+  const threeMonthInt = bal * (contract / 12) * 3;
+  const irdRate       = Math.max(contract - postedCurr, 0);
+  const irdPenalty    = bal * irdRate / 12 * months;
+  const applicable    = Math.max(threeMonthInt, irdPenalty);
+  const isIRD         = irdPenalty > threeMonthInt;
+
+  $('penalty-results').innerHTML = `
+    <div class="penalty-result">
+      <div class="per-label">⚠ Applicable Penalty (Greater Of)</div>
+      <div class="per-value">${fmt$2(applicable)}</div>
+      <div style="margin-top:6px;font-size:12px;color:var(--muted)">Driven by: ${isIRD ? 'IRD calculation' : '3-month interest'}</div>
+    </div>
+    <div class="result-card" style="margin-top:10px">
+      <div class="result-row">
+        <span class="rr-label">3-Month Interest Penalty</span>
+        <span class="rr-value">${fmt$2(threeMonthInt)}</span>
+      </div>
+      <div class="result-row">
+        <span class="rr-label">IRD Rate Differential</span>
+        <span class="rr-value">${(irdRate*100).toFixed(3)}%</span>
+      </div>
+      <div class="result-row">
+        <span class="rr-label">IRD Penalty</span>
+        <span class="rr-value">${fmt$2(irdPenalty)}</span>
+      </div>
+    </div>
+    <div class="note">⚠ Always verify with your lender — exact IRD methodology varies by institution.</div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// INCOME HELPER
+// ═══════════════════════════════════════════════════════════
+function calcIncome(n) {
+  if (n <= 2) {
+    const annual   = parseFloat($(`ih${n}-annual`).value)   || 0;
+    const biweekly = parseFloat($(`ih${n}-biweekly`).value) || 0;
+    const hourly   = parseFloat($(`ih${n}-hourly`).value)   || 0;
+    const hrs      = parseFloat($(`ih${n}-hrs`).value)      || 0;
+    const t4y1     = parseFloat($(`ih${n}-t4y1`).value)     || 0;
+    const t4y2     = parseFloat($(`ih${n}-t4y2`).value)     || 0;
+
+    let result = 0;
+    let method = '';
+    if (annual)            { result = annual;          method = 'Annual salary'; }
+    else if (biweekly)     { result = biweekly * 26;   method = 'Bi-weekly × 26'; }
+    else if (hourly && hrs){ result = hourly * hrs * 52; method = 'Hourly × hrs × 52'; }
+    else if (t4y1 && t4y2) { result = (t4y1 + t4y2)/2; method = '2-yr T4/NOA average'; }
+
+    $(`ih${n}-result`).textContent = result
+      ? `Annual Income: ${fmt$(result)}  (${method})`
+      : 'Annual Income: —';
+  } else {
+    const a = parseFloat($(`ih${n}-annual`).value) || 0;
+    $(`ih${n}-result`).textContent = a ? `B${n}: ${fmt$(a)}` : `B${n}: —`;
+  }
+}
+
+// ─── Run on load ───
+calcQualify();
+calcPayment();
+calcPenalty();
+</script>
+</body>
+</html>
